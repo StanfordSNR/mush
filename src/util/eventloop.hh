@@ -3,6 +3,7 @@
 #include <functional>
 #include <list>
 #include <memory>
+#include <optional>
 #include <string_view>
 
 #include <poll.h>
@@ -43,11 +44,16 @@ private:
 
   struct FDRule : public BasicRule
   {
-    FileDescriptor fd;   //!< FileDescriptor to monitor for activity.
-    Direction direction; //!< Direction::In for reading from fd, Direction::Out for writing to fd.
-    CallbackT cancel;    //!< A callback that is called when the rule is cancelled (e.g. on hangup)
+    FileDescriptor fd;              //!< FileDescriptor to monitor for activity.
+    Direction direction;            //!< Direction::In for reading from fd, Direction::Out for writing to fd.
+    CallbackT cancel;               //!< A callback that is called when the rule is cancelled (e.g. on hangup)
+    std::optional<CallbackT> error; //<! A callback that is called when an error happens
 
-    FDRule( BasicRule&& base, FileDescriptor&& fd, const Direction direction, const CallbackT& cancel );
+    FDRule( BasicRule&& base,
+            FileDescriptor&& fd,
+            const Direction direction,
+            const CallbackT& cancel,
+            const std::optional<CallbackT>& error );
 
     //! Returns the number of times fd has been read or written, depending on the value of Rule::direction.
     //! \details This function is used internally by EventLoop; you will not need to call it
@@ -82,18 +88,17 @@ public:
     void cancel();
   };
 
-  RuleHandle add_rule(
-    const size_t category_id,
-    const FileDescriptor& fd,
-    const Direction direction,
-    const CallbackT& callback,
-    const InterestT& interest = [] { return true; },
-    const CallbackT& cancel = [] {} );
+  RuleHandle add_rule( const size_t category_id,
+                       const FileDescriptor& fd,
+                       const Direction direction,
+                       const CallbackT& callback,
+                       const InterestT& interest = [] { return true; },
+                       const CallbackT& cancel = [] {},
+                       const std::optional<CallbackT>& error = std::nullopt );
 
-  RuleHandle add_rule(
-    const size_t category_id,
-    const CallbackT& callback,
-    const InterestT& interest = [] { return true; } );
+  RuleHandle add_rule( const size_t category_id, const CallbackT& callback, const InterestT& interest = [] {
+    return true;
+  } );
 
   //! Calls [poll(2)](\ref man2::poll) and then executes callback for each ready fd.
   Result wait_next_event( const int timeout_ms );
