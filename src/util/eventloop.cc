@@ -27,11 +27,16 @@ EventLoop::BasicRule::BasicRule( const size_t category_id, const InterestT& inte
   , cancel_requested( false )
 {}
 
-EventLoop::FDRule::FDRule( BasicRule&& base, FileDescriptor&& fd, const Direction direction, const CallbackT& cancel )
+EventLoop::FDRule::FDRule( BasicRule&& base,
+                           FileDescriptor&& fd,
+                           const Direction direction,
+                           const CallbackT& cancel,
+                           const optional<CallbackT>& error )
   : BasicRule( base )
   , fd( move( fd ) )
   , direction( direction )
   , cancel( cancel )
+  , error( error )
 {}
 
 EventLoop::RuleHandle EventLoop::add_rule( const size_t category_id,
@@ -39,14 +44,15 @@ EventLoop::RuleHandle EventLoop::add_rule( const size_t category_id,
                                            const Direction direction,
                                            const CallbackT& callback,
                                            const InterestT& interest,
-                                           const CallbackT& cancel )
+                                           const CallbackT& cancel,
+                                           const optional<CallbackT>& error )
 {
   if ( category_id >= _rule_categories.size() ) {
     throw out_of_range( "bad category_id" );
   }
 
   _fd_rules.emplace_back(
-    make_shared<FDRule>( BasicRule { category_id, interest, callback }, fd.duplicate(), direction, cancel ) );
+    make_shared<FDRule>( BasicRule { category_id, interest, callback }, fd.duplicate(), direction, cancel, error ) );
 
   return _fd_rules.back();
 }
@@ -168,21 +174,26 @@ EventLoop::Result EventLoop::wait_next_event( const int timeout_ms )
 
     const auto poll_error = static_cast<bool>( this_pollfd.revents & ( POLLERR | POLLNVAL ) );
     if ( poll_error ) {
-      /* see if fd is a socket */
-      int socket_error = 0;
-      socklen_t optlen = sizeof( socket_error );
-      const int ret = getsockopt( this_rule.fd.fd_num(), SOL_SOCKET, SO_ERROR, &socket_error, &optlen );
-      if ( ret == -1 and errno == ENOTSOCK ) {
-        throw runtime_error( "error on polled file descriptor for rule \""
-                             + _rule_categories.at( this_rule.category_id ).name + "\"" );
-      } else if ( ret == -1 ) {
-        throw unix_error( "getsockopt" );
-      } else if ( optlen != sizeof( socket_error ) ) {
-        throw runtime_error( "unexpected length from getsockopt: " + to_string( optlen ) );
-      } else if ( socket_error ) {
-        throw unix_error( "error on polled socket for rule \"" + _rule_categories.at( this_rule.category_id ).name
-                            + "\"",
-                          socket_error );
+      /* do we have an error handler? */
+      if ( this_rule.error.has_value() ) {
+        ( *this_rule.error )();
+      } else {
+        /* see if fd is a socket */
+        int socket_error = 0;
+        socklen_t optlen = sizeof( socket_error );
+        const int ret = getsockopt( this_rule.fd.fd_num(), SOL_SOCKET, SO_ERROR, &socket_error, &optlen );
+        if ( ret == -1 and errno == ENOTSOCK ) {
+          throw runtime_error( "error on polled file descriptor for rule \""
+                               + _rule_categories.at( this_rule.category_id ).name + "\"" );
+        } else if ( ret == -1 ) {
+          throw unix_error( "getsockopt" );
+        } else if ( optlen != sizeof( socket_error ) ) {
+          throw runtime_error( "unexpected length from getsockopt: " + to_string( optlen ) );
+        } else if ( socket_error ) {
+          throw unix_error( "error on polled socket for rule \"" + _rule_categories.at( this_rule.category_id ).name
+                              + "\"",
+                            socket_error );
+        }
       }
 
       this_rule.cancel();
