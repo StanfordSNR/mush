@@ -24,6 +24,7 @@ AWSClient::AWSClient( const string& region )
     return SSLSession { ssl_context_.make_SSL_handle(), move( tcp_sock ), endpoint_hostname_ };
   }() )
   , http_()
+  , response_()
 {}
 
 void AWSClient::install_rules( EventLoop& event_loop )
@@ -51,25 +52,16 @@ void AWSClient::install_rules( EventLoop& event_loop )
 
   rules_.push_back( event_loop.add_rule(
     "HTTP read",
-    [&] { http_.read( ssl_session_.inbound_plaintext() ); },
-    [&] { return not ssl_session_.inbound_plaintext().readable_region().empty(); } ) );
-
-  rules_.push_back( event_loop.add_rule(
-    "print HTTP response",
     [&] {
-      cerr << "Response received: " << http_.responses_front().first_line() << "\n";
-      cerr << http_.responses_front().body() << "\n";
-      http_.pop_response();
-
-      // remove all rules...
-      for ( auto& rule : rules_ ) {
-        rule.cancel();
+      if ( http_.read( ssl_session_.inbound_plaintext(), response_ ) ) {
+        cerr << "Response received: " << response_.http_version << " " << response_.status_code << " "
+             << response_.reason_phrase << response_.body << "\n";
       }
     },
-    [&] { return not http_.responses_empty(); } ) );
+    [&] { return not ssl_session_.inbound_plaintext().readable_region().empty(); } ) );
 }
 
 void AWSClient::get_account_settings()
 {
-  http_.push_request( { { "GET /2016-08-19/account-settings/ HTTP/1.1" }, { { "Host", endpoint_hostname_ } }, "" } );
+  http_.push_request( { "GET", "/2016-08-19/account-settings/ HTTP/1.1", "HTTP/1.1", { {}, endpoint_hostname_ }, {} } );
 }

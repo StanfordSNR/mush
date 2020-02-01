@@ -14,6 +14,7 @@ class AWSClient
   SSLContext ssl_context_;
   SSLSession ssl_session_;
   HTTPClient http_;
+  HTTPResponse response_;
 
   std::vector<EventLoop::RuleHandle> rules_ {};
 

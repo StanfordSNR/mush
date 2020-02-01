@@ -64,7 +64,8 @@ public:
   {
     Success, //!< At least one Rule was triggered.
     Timeout, //!< No rules were triggered before timeout.
-    Exit //!< All rules have been canceled or were uninterested; make no further calls to EventLoop::wait_next_event.
+    Exit     //!< All rules have been canceled or were uninterested; make no further calls to
+             //!< EventLoop::wait_next_event.
   };
 
   size_t add_category( const std::string& name );

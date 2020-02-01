@@ -220,8 +220,6 @@ EventLoop::Result EventLoop::wait_next_event( const int timeout_ms )
   return Result::Success;
 }
 
-constexpr double THOUSAND = 1000.0;
-
 string EventLoop::summary() const
 {
   ostringstream out;
@@ -233,8 +231,8 @@ string EventLoop::summary() const
     const auto& timer = rule.timer;
 
     out << "   " << name << ": ";
-    out << string( 32 - name.size(), ' ' );
-    out << Timer::pp_ns( timer.total_ns );
+    out << string( 27 - name.size(), ' ' );
+    out << "mean " << Timer::pp_ns( timer.total_ns / timer.count );
 
     out << "     [max=" << Timer::pp_ns( timer.max_ns ) << "]";
     out << " [count=" << timer.count << "]";

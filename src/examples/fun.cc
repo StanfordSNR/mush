@@ -84,9 +84,9 @@ void program_body()
   SSLSession ssl { ssl_context.make_SSL_handle(), move( tcp_sock ), "cs.stanford.edu" };
 
   HTTPClient http;
-  http.push_request( { "GET /~keithw/ HTTP/1.1", { { "Host", "cs.stanford.edu" } }, "" } );
-  http.push_request( { "GET /~keithw HTTP/1.1", { { "Host", "cs.stanford.edu" } }, "" } );
-  http.push_request( { "GET /~keithw/ HTTP/1.1", { { "Host", "cs.stanford.edu" }, { "Connection", "close" } }, "" } );
+  http.push_request( { "GET", "/~keithw/", "HTTP/1.1", { {}, "cs.stanford.edu" }, {} } );
+  http.push_request( { "GET", "/~keithw", "HTTP/1.1", { {}, "cs.stanford.edu" }, {} } );
+  http.push_request( { "GET", "/~keithw/", "HTTP/1.1", { {}, "cs.stanford.edu", true }, {} } );
 
   STUNClient stun;
 
@@ -95,6 +95,7 @@ void program_body()
   UDPSocket::received_datagram udp_scratch { { "0", 0 }, {} };
 
   EventLoop event_loop;
+  HTTPResponse response;
 
   event_loop.add_rule(
     "SSL read", ssl.socket(), Direction::In, [&] { ssl.do_read(); }, [&] { return ssl.want_read(); } );
@@ -122,16 +123,13 @@ void program_body()
 
   event_loop.add_rule(
     "HTTP read",
-    [&] { http.read( ssl.inbound_plaintext() ); },
-    [&] { return not ssl.inbound_plaintext().readable_region().empty(); } );
-
-  event_loop.add_rule(
-    "print HTTP response",
     [&] {
-      cerr << "Response received: " << http.responses_front().first_line() << "\n";
-      http.pop_response();
+      if ( http.read( ssl.inbound_plaintext(), response ) ) {
+        cerr << "Response received: " << response.http_version << " " << response.status_code << " "
+             << response.reason_phrase << "\n";
+      }
     },
-    [&] { return not http.responses_empty(); } );
+    [&] { return not ssl.inbound_plaintext().readable_region().empty(); } );
 
   while ( event_loop.wait_next_event( -1 ) != EventLoop::Result::Exit ) {
   }
