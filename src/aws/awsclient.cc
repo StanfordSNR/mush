@@ -55,7 +55,8 @@ void AWSClient::install_rules( EventLoop& event_loop )
     [&] {
       if ( http_.read( ssl_session_.inbound_plaintext(), response_ ) ) {
         cerr << "Response received: " << response_.http_version << " " << response_.status_code << " "
-             << response_.reason_phrase << response_.body << "\n";
+             << response_.reason_phrase << "\n"
+             << response_.body << "\n";
       }
     },
     [&] { return not ssl_session_.inbound_plaintext().readable_region().empty(); } ) );
@@ -64,5 +65,5 @@ void AWSClient::install_rules( EventLoop& event_loop )
 void AWSClient::get_account_settings()
 {
   http_.push_request(
-    { "GET", "/2016-08-19/account-settings/ HTTP/1.1", "HTTP/1.1", { {}, endpoint_hostname_ }, {} } );
+    { "GET", "/2016-08-19/account-settings/", "HTTP/1.1", { {}, endpoint_hostname_ }, {} } );
 }
