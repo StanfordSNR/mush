@@ -10,11 +10,11 @@
 
 #include "http_structures.hh"
 
-#define AUTO_READ                                                                                                      \
-  size_t read( const std::string_view input )                                                                          \
-  {                                                                                                                    \
-    read_all( input );                                                                                                 \
-    return input.size();                                                                                               \
+#define AUTO_READ                                                                                                  \
+  size_t read( const std::string_view input )                                                                      \
+  {                                                                                                                \
+    read_all( input );                                                                                             \
+    return input.size();                                                                                           \
   }
 
 class StringReader
@@ -210,7 +210,8 @@ public:
 };
 
 template<class Inner>
-class IgnoreSurroundingWhitespaceReader : public IgnoreTrailingWhitespaceReader<IgnoreInitialWhitespaceReader<Inner>>
+class IgnoreSurroundingWhitespaceReader
+  : public IgnoreTrailingWhitespaceReader<IgnoreInitialWhitespaceReader<Inner>>
 {
 public:
   using IgnoreTrailingWhitespaceReader<IgnoreInitialWhitespaceReader<Inner>>::IgnoreTrailingWhitespaceReader;
@@ -332,8 +333,8 @@ public:
   HTTPResponseReader( const bool request_method_was_head, HTTPResponse&& target, State&& state )
     : target_( std::move( target ) )
     , request_method_was_head_( request_method_was_head )
-    , status_line_reader_(
-        { std::move( target_.http_version ), { std::move( target_.status_code ), std::move( target.reason_phrase ) } } )
+    , status_line_reader_( { std::move( target_.http_version ),
+                             { std::move( target_.status_code ), std::move( target.reason_phrase ) } } )
     , header_reader_( std::move( state ) )
     , body_reader_()
   {}

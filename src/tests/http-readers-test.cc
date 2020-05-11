@@ -263,8 +263,9 @@ void http_test()
   {
     HTTPResponseReader reader { false, move( response ), move( s2 ) };
     require( not reader.finished() );
-    require( reader.read( "HTTP/1.1 199 INFO\r\nContent-Type: text/html\r\nContent-Length: 7\r\n\r\nHellothere\r\n" )
-             == 65 );
+    require(
+      reader.read( "HTTP/1.1 199 INFO\r\nContent-Type: text/html\r\nContent-Length: 7\r\n\r\nHellothere\r\n" )
+      == 65 );
     require( reader.finished() );
     response = reader.release();
     s2 = reader.release_extra_state();

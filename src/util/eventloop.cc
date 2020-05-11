@@ -27,7 +27,10 @@ EventLoop::BasicRule::BasicRule( const size_t category_id, const InterestT& inte
   , cancel_requested( false )
 {}
 
-EventLoop::FDRule::FDRule( BasicRule&& base, FileDescriptor&& fd, const Direction direction, const CallbackT& cancel )
+EventLoop::FDRule::FDRule( BasicRule&& base,
+                           FileDescriptor&& fd,
+                           const Direction direction,
+                           const CallbackT& cancel )
   : BasicRule( base )
   , fd( move( fd ) )
   , direction( direction )
@@ -91,8 +94,8 @@ EventLoop::Result EventLoop::wait_next_event( const int timeout_ms )
         if ( this_rule.interest() ) {
           if ( iterations > 128 ) {
             throw runtime_error( "EventLoop: busy wait detected: rule \""
-                                 + _rule_categories.at( this_rule.category_id ).name + "\" is still interested after "
-                                 + to_string( iterations ) + " iterations" );
+                                 + _rule_categories.at( this_rule.category_id ).name
+                                 + "\" is still interested after " + to_string( iterations ) + " iterations" );
           }
 
           rule_fired = true;
@@ -202,7 +205,9 @@ EventLoop::Result EventLoop::wait_next_event( const int timeout_ms )
     }
 
     if ( poll_ready ) {
-      RecordScopeTimer<Timer::Category::Nonblock> record_timer { _rule_categories.at( this_rule.category_id ).timer };
+      RecordScopeTimer<Timer::Category::Nonblock> record_timer {
+        _rule_categories.at( this_rule.category_id ).timer
+      };
       // we only want to call callback if revents includes the event we asked for
       const auto count_before = this_rule.service_count();
       this_rule.callback();

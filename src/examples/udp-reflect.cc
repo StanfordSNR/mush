@@ -69,8 +69,8 @@ void program_body( const string& id )
     Direction::In,
     [&] {
       auto rec = sock.recv();
-      sock.sendto( trolley,
-                   "INFO " + id + " received datagram from " + rec.source_address.to_string() + ": " + rec.payload );
+      sock.sendto(
+        trolley, "INFO " + id + " received datagram from " + rec.source_address.to_string() + ": " + rec.payload );
 
       vector<string_view> fields;
       split_on_char( rec.payload, ' ', fields );

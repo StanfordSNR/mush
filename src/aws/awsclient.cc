@@ -63,5 +63,6 @@ void AWSClient::install_rules( EventLoop& event_loop )
 
 void AWSClient::get_account_settings()
 {
-  http_.push_request( { "GET", "/2016-08-19/account-settings/ HTTP/1.1", "HTTP/1.1", { {}, endpoint_hostname_ }, {} } );
+  http_.push_request(
+    { "GET", "/2016-08-19/account-settings/ HTTP/1.1", "HTTP/1.1", { {}, endpoint_hostname_ }, {} } );
 }

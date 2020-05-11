@@ -13,7 +13,10 @@ class ssl_error_category : public std::error_category
 {
 public:
   const char* name() const noexcept override { return "SSL"; }
-  std::string message( const int ssl_error ) const noexcept override { return ERR_error_string( ssl_error, nullptr ); }
+  std::string message( const int ssl_error ) const noexcept override
+  {
+    return ERR_error_string( ssl_error, nullptr );
+  }
 };
 
 class ssl_error : public tagged_error
