@@ -11,13 +11,21 @@ void program_body()
 {
   ios::sync_with_stdio( false );
 
-  AWSClient aws { "us-west-2" };
-  EventLoop event_loop;
+  AWSCredentials creds {(string)"AKIAWTKT5FNZQSDCH2XD",(string)"wVW/5Kx5WvYtATwyVuydvYVIEGs+ZO4cRr+hkRvZ"};
+    EventLoop event_loop;
+//  AWSLambdaClient aws { "us-west-2" ,creds};
+//
+//
+//  aws.install_rules( event_loop );
+//  aws.print_response();
+// //aws.get_account_settings();
+//  aws.invoke_function("test");
 
-  aws.install_rules( event_loop );
-  aws.get_account_settings();
+    AWSS3Client aws { "us-west-2" ,creds};
+    aws.install_rules( event_loop );
+    aws.download_file("dpc-h-1gb-marsupialtail","customer/customer.tbl","customer.csv");
 
-  while ( event_loop.wait_next_event( -1 ) != EventLoop::Result::Exit ) {
+    while ( event_loop.wait_next_event( -1 ) != EventLoop::Result::Exit ) {
   }
 
   cout << event_loop.summary() << "\n";

@@ -11,6 +11,8 @@ import boto3
 
 def create_function_package(output, binary):
     PACKAGE_FILES = {
+        "libonnxruntime.so.1.8.0" : "libonnxruntime.so.1.8.0",
+        "squeezenet.onnx" : "squeezenet.onnx",
         "binary": binary,
         "main.py": "lambda-main.py",
     }
@@ -64,13 +66,12 @@ def main():
 
     function_name = args.name
     function_file = "{}.zip".format(function_name)
-    try:
-        create_function_package(function_file, args.binary)
-        print("Installing lambda function {}... ".format(function_name), end='')
-        install_lambda_package(function_file, function_name, args.role, args.region,
-                               delete=args.delete)
-    finally:
-        os.remove(function_file)
+
+    create_function_package(function_file, args.binary)
+    print("Installing lambda function {}... ".format(function_name), end='')
+    install_lambda_package(function_file, function_name, args.role, args.region,
+                           delete=args.delete)
+
 
 if __name__ == '__main__':
     main()

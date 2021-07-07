@@ -2,11 +2,14 @@
 
 #include <optional>
 #include <string>
-
+#include <map>
 struct HTTPHeaders
 {
   std::optional<size_t> content_length {};
-  std::string host {};
+//  std::string host {};
+//  std::string authorization {};
+//  std::string x_amz_date {};
+  std::map<std::string, std::string> headers{};
   bool connection_close {};
 };
 

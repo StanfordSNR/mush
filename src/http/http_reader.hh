@@ -295,7 +295,7 @@ public:
             target_.content_length.emplace( num_unsigned );
           }
         } else if ( header_equals( state.first, "Host" ) ) {
-          target_.host = state.second;
+          target_.headers["host"] = state.second;
         } else if ( header_equals( state.first, "Connection" ) ) {
           if ( header_equals( state.second, "close" ) ) {
             target_.connection_close = true;

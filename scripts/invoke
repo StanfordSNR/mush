@@ -10,6 +10,7 @@ FUNCTION_NAME=$2
 shift
 shift
 
+# wierd way to define output files
 TEMPOUT=$(mktemp /tmp/invoke-result.XXXXXX)
 TEMPERR=$(mktemp /tmp/invoke-error.XXXXXX)
 
@@ -21,7 +22,9 @@ exec 6<"${TEMPERR}"
 rm ${TEMPOUT}
 rm ${TEMPERR}
 
-OUTPUT=$(aws lambda invoke --log-type Tail --region=$REGION --function-name "$FUNCTION_NAME" --payload "`jo -a "$@"`" /proc/self/fd/3 2>&5)
+# jo doesn't work, just type the json like a normal person
+#OUTPUT=$(aws lambda invoke --log-type Tail --region=$REGION --function-name "$FUNCTION_NAME" --payload "`jo -a "$@"`" /proc/self/fd/3 2>&5)
+OUTPUT=$(aws lambda invoke --log-type Tail --region=$REGION --function-name "$FUNCTION_NAME" /proc/self/fd/3 2>&5)
 RESPONSE=$(cat <&4)
 STDERR=$(cat <&6)
 

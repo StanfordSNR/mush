@@ -84,9 +84,9 @@ void program_body()
   SSLSession ssl { ssl_context.make_SSL_handle(), move( tcp_sock ), "cs.stanford.edu" };
 
   HTTPClient http;
-  http.push_request( { "GET", "/~keithw/", "HTTP/1.1", { {}, "cs.stanford.edu" }, {} } );
-  http.push_request( { "GET", "/~keithw", "HTTP/1.1", { {}, "cs.stanford.edu" }, {} } );
-  http.push_request( { "GET", "/~keithw/", "HTTP/1.1", { {}, "cs.stanford.edu", true }, {} } );
+  http.push_request( { "GET", "/~keithw/", "HTTP/1.1", { {}, {{"host","cs.stanford.edu"}} }, {} } );
+  http.push_request( { "GET", "/~keithw", "HTTP/1.1", { {},{{"host","cs.stanford.edu"}} }, {} } );
+  http.push_request( { "GET", "/~keithw/", "HTTP/1.1", { {}, {{"host","cs.stanford.edu"}} , true }, {} } );
 
   STUNClient stun;
 

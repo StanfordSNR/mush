@@ -50,11 +50,31 @@ void HTTPRequestWriter::write_to( RingBuffer& buffer )
     attempt.write( "\r\n" );
   }
 
-  if ( not request_.headers.host.empty() ) {
-    attempt.write( "Host: " );
-    attempt.write( request_.headers.host );
-    attempt.write( "\r\n" );
-  }
+    if ( not request_.headers.headers.empty() ) {
+        for (const auto &hd: request_.headers.headers) {
+            attempt.write(hd.first + ":");
+            attempt.write(hd.second);
+            attempt.write("\r\n");
+        }
+    }
+
+//  if ( not request_.headers.host.empty() ) {
+//    attempt.write( "Host: " );
+//    attempt.write( request_.headers.host );
+//    attempt.write( "\r\n" );
+//  }
+//
+//  if ( not request_.headers.authorization.empty() ) {
+//    attempt.write( "Authorization: " );
+//    attempt.write( request_.headers.authorization );
+//    attempt.write( "\r\n" );
+//  }
+//
+//  if ( not request_.headers.x_amz_date.empty() ) {
+//    attempt.write( "X-Amz-Date: " );
+//    attempt.write( request_.headers.x_amz_date );
+//    attempt.write( "\r\n" );
+//  }
 
   if ( request_.headers.connection_close ) {
     attempt.write( "Connection: close\r\n" );
