@@ -158,5 +158,6 @@ namespace AWSv4Sig{
             << ", Signature=" << signature;
 
         headers.headers["authorization"] = req.str();
+        headers.headers["x-amz-content-sha256"] = hash_val;
     }
 }

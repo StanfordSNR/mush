@@ -25,8 +25,9 @@ AWSClient::AWSClient( const string & service, const string& region, const AWSCre
   }() )
   , ssl_context_( [&] {
     SSLContext ret;
-    //ret.trust_certificate( aws_root_ca_1 );
+    ret.trust_certificate( aws_root_ca_1 );
     ret.trust_certificate( digicert);
+
 
     return ret;
   }() )
@@ -47,27 +48,34 @@ void AWSClient::install_rules( EventLoop& event_loop )
     "SSL read",
     ssl_session_.socket(),
     Direction::In,
-    [&] { ssl_session_.do_read(); },
+    [&] { cout << "doing read" << endl; ssl_session_.do_read(); },
     [&] { return ssl_session_.want_read(); } ) );
 
   rules_.push_back( event_loop.add_rule(
     "SSL write",
     ssl_session_.socket(),
     Direction::Out,
-    [&] { ssl_session_.do_write(); },
+    [&] { cout << "doing write" << endl; ssl_session_.do_write(); },
     [&] { return ssl_session_.want_write(); } ) );
 
+ /* rules_.push_back( event_loop.add_rule(
+        "HTTP write",
+        [&] { RingBuffer a; http_.write(a); a.write_to(tcp_sock)},
+        [&] {
+            return ( not ssl_session_.outbound_plaintext().writable_region().empty() ) and ( not http_.requests_empty() );
+        } ) );
+*/
   rules_.push_back( event_loop.add_rule(
-    "HTTP write",
-    [&] { http_.write( ssl_session_.outbound_plaintext() ); },
+    "HTTPS write",
+    [&] {cout << "doing https write" << endl;  http_.write( ssl_session_.outbound_plaintext() ); },
     [&] {
       return ( not ssl_session_.outbound_plaintext().writable_region().empty() ) and ( not http_.requests_empty() );
     } ) );
 
   rules_.push_back( event_loop.add_rule(
-    "HTTP read",
-    [&] {
-      if ( http_.read( ssl_session_.inbound_plaintext(), response_ ) ) {
+    "HTTPS read",
+    [&] {cout << "doing https read" << endl;
+        if ( http_.read( ssl_session_.inbound_plaintext(), response_ ) ) {
         cerr << "Response received: " << response_.http_version << " " << response_.status_code << " "
              << response_.reason_phrase << "\n"
              << response_.body << "\n";
@@ -125,26 +133,40 @@ AWSS3Client::AWSS3Client(const std::string &region, const AWSCredentials &creds)
 void AWSS3Client::download_file(const std::string & bucket, const std::string & object,
                                 const std::string & filename) {
 
+
     const string endpoint = bucket + "." + region_ + ".amazonaws.com";
-    cout << endpoint << endl;
+
+    cout << bucket << " " << endpoint << " " << object <<  endl;
     HTTPHeaders headers { {}, {}};
     headers.headers["host"] = endpoint;
-    auto line = bucket;
+    auto line = object;
     cout << object << " " << filename << endl;
-    AWSv4Sig::sign_request( (string)"POST\n" + line,
+    AWSv4Sig::sign_request( (string)"GET\n" + line,
                             creds_.secret_key(), creds_.access_key(),
-                            region_, service_, {}, headers );
+                            "us-west-2", "s3", {}, headers );
+    for(auto hd : headers.headers)
+    {
+        cout << hd.first << " " << hd.second << endl;
+    }
 
     http_.push_request(
-            { "POST", line, "HTTP/1.1", headers , {} } );
+            { "GET", line, "HTTP/1.1", headers , {} } );
+//    http_.write( ssl_session_.outbound_plaintext() );
+//    while (not ssl_session_.want_write()) {}
+//    ssl_session_.do_write();
+//    while ( ssl_session_.inbound_plaintext().readable_region().empty() ){cout << "waiting " << endl;}
+//
+//    if ( http_.read( ssl_session_.inbound_plaintext(), response_ ) ) {
+//        cerr << "Response received: " << response_.http_version << " " << response_.status_code << " "
+//             << response_.reason_phrase << "\n"
+//             << response_.body << "\n";
+//    }
 
 //    FileDescriptor file { CheckSystemCall( "open",
 //                                           open( filename.string().c_str(), O_RDWR | O_TRUNC | O_CREAT,
 //                                                 S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH ) ) };
 //
-//    while ( responses.empty() ) {
-//        responses.parse( s3.read() );
-//    }
+
 //
 //    if ( responses.front().first_line() != "HTTP/1.1 200 OK" ) {
 //        throw runtime_error( "HTTP failure in S3Client::download_file( " + bucket + ", " + object + " ): " + responses.front().first_line() );
@@ -153,4 +175,9 @@ void AWSS3Client::download_file(const std::string & bucket, const std::string & 
 //        file.write( responses.front().body(), true );
 //    }
 
+}
+
+void AWSS3Client::read_downloaded_file()
+{
+    cout << response_.body << endl;
 }

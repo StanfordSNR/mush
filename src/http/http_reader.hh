@@ -356,7 +356,8 @@ public:
     std::string_view input = orig_input;
 
     while ( ( not finished() ) and ( not input.empty() ) ) {
-      if ( not status_line_finished_ ) {
+
+        if ( not status_line_finished_ ) {
         input.remove_prefix( status_line_reader_.read( input ) );
         if ( status_line_reader_.finished() ) {
           status_line_finished_ = true;
@@ -378,7 +379,8 @@ public:
       }
 
       if ( not body_reader_.has_value() ) {
-        /* do we know the length of the body? */
+        std::cout << target_.status_code << std::endl;
+          /* do we know the length of the body? */
         if ( request_method_was_head_ or status_code_implies_empty_body( target_.status_code ) ) {
           body_reader_.emplace( std::move( target_.body ), 0 );
         } else if ( target_.headers.content_length.has_value() ) {

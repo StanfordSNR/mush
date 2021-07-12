@@ -59,4 +59,5 @@ public:
     AWSS3Client(const std::string & region, const AWSCredentials & creds);
     void download_file(const std::string & bucket, const std::string & object,
                        const std::string & filename);
+    void read_downloaded_file();
 };
