@@ -40,7 +40,7 @@ protected:
   std::vector<EventLoop::RuleHandle> rules_ {};
 
 public:
-  AWSClient( const std::string & service, const std::string& region, const AWSCredentials & creds  );
+  AWSClient( const std::string & service, const std::string& region, const AWSCredentials & creds  , const Address & address  );
   void install_rules( EventLoop& event_loop );
   void print_response();
 };
@@ -48,15 +48,15 @@ public:
 class AWSLambdaClient: public AWSClient
 {
 public:
-    AWSLambdaClient(const std::string & region, const AWSCredentials & creds);
-    void invoke_function(const std::string & function, const std::string & qualifier = "");
+    AWSLambdaClient(const std::string & region, const AWSCredentials & creds , const Address & address);
+    void invoke_function(const std::string & function, std::vector<std::string> arguments);
     void get_account_settings();
 };
 
 class AWSS3Client: public AWSClient
 {
 public:
-    AWSS3Client(const std::string & region, const AWSCredentials & creds);
+    AWSS3Client(const std::string & region, const AWSCredentials & creds , const Address & address);
     void download_file(const std::string & bucket, const std::string & object,
                        const std::string & filename);
     void read_downloaded_file();

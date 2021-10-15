@@ -237,7 +237,8 @@ string EventLoop::summary() const
 
     out << "   " << name << ": ";
     out << string( 27 - name.size(), ' ' );
-    out << "mean " << Timer::pp_ns( timer.total_ns / timer.count );
+    if (timer.count > 0)
+    {out << "mean " << Timer::pp_ns( timer.total_ns / timer.count );}
 
     out << "     [max=" << Timer::pp_ns( timer.max_ns ) << "]";
     out << " [count=" << timer.count << "]";

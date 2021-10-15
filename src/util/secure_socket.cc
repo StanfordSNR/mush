@@ -277,7 +277,6 @@ void SSLSession::do_write()
   OpenSSL::check( "SSLSession::do_write()" );
 
   const string_view source = outbound_plaintext_.readable_region();
-
   const auto write_count_before = socket_.write_count();
   const int bytes_written = SSL_write( ssl_.get(), source.data(), source.size() );
   const auto write_count_after = socket_.write_count();
@@ -285,7 +284,6 @@ void SSLSession::do_write()
   if ( write_count_after > write_count_before or bytes_written > 0 ) {
     read_waiting_on_write_ = false;
   }
-
   if ( bytes_written > 0 ) {
     outbound_plaintext_.pop( bytes_written );
     return;

@@ -1,5 +1,5 @@
 #include "http_writer.hh"
-
+#include <iostream>
 using namespace std;
 
 HTTPRequestWriter::HTTPRequestWriter( HTTPRequest&& request )
@@ -58,24 +58,6 @@ void HTTPRequestWriter::write_to( RingBuffer& buffer )
         }
     }
 
-//  if ( not request_.headers.host.empty() ) {
-//    attempt.write( "Host: " );
-//    attempt.write( request_.headers.host );
-//    attempt.write( "\r\n" );
-//  }
-//
-//  if ( not request_.headers.authorization.empty() ) {
-//    attempt.write( "Authorization: " );
-//    attempt.write( request_.headers.authorization );
-//    attempt.write( "\r\n" );
-//  }
-//
-//  if ( not request_.headers.x_amz_date.empty() ) {
-//    attempt.write( "X-Amz-Date: " );
-//    attempt.write( request_.headers.x_amz_date );
-//    attempt.write( "\r\n" );
-//  }
-
   if ( request_.headers.connection_close ) {
     attempt.write( "Connection: close\r\n" );
   }
@@ -84,6 +66,7 @@ void HTTPRequestWriter::write_to( RingBuffer& buffer )
   attempt.write( "\r\n" );
 
   /* write body */
+  std::cout << request_.body << std::endl;
   attempt.write( request_.body );
 
   if ( attempt.completed() ) {

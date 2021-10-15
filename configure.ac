@@ -7,8 +7,10 @@ AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_HEADERS([config.h])
 
 # Add picky CXXFLAGS
+CXXFLAGS="-O2"
 CXX17_FLAGS="-std=c++17 -pthread"
 PICKY_CXXFLAGS="-Wpedantic -Wall -Wextra -Weffc++ -Werror"
+AC_SUBST([CXXFLAGS])
 AC_SUBST([CXX17_FLAGS])
 AC_SUBST([PICKY_CXXFLAGS])
 
